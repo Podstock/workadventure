@@ -29,7 +29,7 @@ module.exports = {
         extensions: [ '.tsx', '.ts', '.js' ],
     },
     output: {
-        filename: '[name].[contenthash].js',
+        filename: '[name].js',
         path: path.resolve(__dirname, 'dist'),
         publicPath: '/'
     },
@@ -39,7 +39,7 @@ module.exports = {
     plugins: [
         new HtmlWebpackPlugin(
             {
-                template: './dist/index.html'
+                template: './src/index.html'
             }
         ),
         new webpack.ProvidePlugin({

@@ -6,3 +6,5 @@
 /dist/webpack.config.js.map
 /dist/src
 *.sh
+/dist/index.html
+/dist/main.js*
