@@ -66,7 +66,7 @@ import {ChatModeIcon} from "../Components/ChatModeIcon";
 import {OpenChatIcon, openChatIconName} from "../Components/OpenChatIcon";
 import {SelectCharacterScene, SelectCharacterSceneName} from "../Login/SelectCharacterScene";
 import {TextureError} from "../../Exception/TextureError";
-import {AnimatedTiles} from "phaser-animated-tiles";
+import AnimatedTiles from "phaser-animated-tiles";
 
 export interface GameSceneInitInterface {
     initPosition: PointInterface|null,
