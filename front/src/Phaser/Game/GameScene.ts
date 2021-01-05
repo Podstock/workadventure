@@ -66,7 +66,6 @@ import {ChatModeIcon} from "../Components/ChatModeIcon";
 import {OpenChatIcon, openChatIconName} from "../Components/OpenChatIcon";
 import {SelectCharacterScene, SelectCharacterSceneName} from "../Login/SelectCharacterScene";
 import {TextureError} from "../../Exception/TextureError";
-import AnimatedTiles from "phaser-animated-tiles";
 
 export interface GameSceneInitInterface {
     initPosition: PointInterface|null,
@@ -114,7 +113,6 @@ export class GameScene extends ResizableScene implements CenterListener {
     Layers!: Array<Phaser.Tilemaps.DynamicTilemapLayer>;
     Objects!: Array<Phaser.Physics.Arcade.Sprite>;
     mapFile!: ITiledMap;
-    animatedTiles!: AnimatedTiles;
     groups: Map<number, Sprite>;
     startX!: number;
     startY!: number;
@@ -188,7 +186,7 @@ export class GameScene extends ResizableScene implements CenterListener {
                 file: file.src
             });
         });
-        this.load.scenePlugin('AnimatedTiles', AnimatedTiles, 'animatedTiles', 'animatedTiles');
+	this.load.scenePlugin('AnimatedTiles', 'resources/plugins/AnimatedTiles.js', 'animatedTiles', 'animatedTiles');
         this.load.on('filecomplete-tilemapJSON-'+this.MapUrlFile, (key: string, type: string, data: unknown) => {
             this.onMapLoad(data);
         });
@@ -386,7 +384,7 @@ export class GameScene extends ResizableScene implements CenterListener {
         //initialise camera
         this.initCamera();
 
-        this.animatedTiles.init(this.Map);
+        (this as any).animatedTiles.init(this.Map); // eslint-disable-line @typescript-eslint/no-explicit-any
 
         // Let's generate the circle for the group delimiter
         let circleElement = Object.values(this.textures.list).find((object: Texture) => object.key === 'circleSprite-white');
