@@ -1,4 +1,5 @@
 const DEBUG_MODE: boolean = process.env.DEBUG_MODE == "true";
+const URL_ROOM_STARTED : string = process.env.URL_ROOM_STARTED || '/Floor0/floor0.json';
 const API_URL = (process.env.API_PROTOCOL || (typeof(window) !== 'undefined' ? window.location.protocol : 'http:')) + '//' + (process.env.API_URL || "pusher.workadventure.localhost");
 const UPLOADER_URL = (process.env.API_PROTOCOL || (typeof(window) !== 'undefined' ? window.location.protocol : 'http:')) + '//' + (process.env.UPLOADER_URL || 'uploader.workadventure.localhost');
 const ADMIN_URL = (process.env.API_PROTOCOL || (typeof(window) !== 'undefined' ? window.location.protocol : 'http:')) + '//' + (process.env.ADMIN_URL || "admin.workadventure.localhost");
@@ -14,6 +15,7 @@ const MAX_EXTRAPOLATION_TIME = 100; // Extrapolate a maximum of 250ms if no new 
 
 export {
     DEBUG_MODE,
+    URL_ROOM_STARTED,
     API_URL,
     UPLOADER_URL,
     ADMIN_URL,
