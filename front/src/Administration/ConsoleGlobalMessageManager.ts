@@ -47,7 +47,7 @@ export class ConsoleGlobalMessageManager {
         //this.buttonSettingsMainConsole = document.createElement('img');
         //this.buttonAdminMainConsole = document.createElement('img');
         this.userInputManager = userInputManager;
-        this.initialise();
+	// TBA: Disable because of exception: this.initialise();
         
     }
 
