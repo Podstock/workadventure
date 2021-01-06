@@ -187,7 +187,7 @@ export class GameScene extends ResizableScene implements CenterListener {
                 file: file.src
             });
         });
-	this.load.scenePlugin('AnimatedTiles', 'resources/plugins/AnimatedTiles.js', 'animatedTiles', 'animatedTiles');
+        this.load.scenePlugin('AnimatedTiles', 'resources/plugins/AnimatedTiles.js', 'animatedTiles', 'animatedTiles');
         this.load.on('filecomplete-tilemapJSON-'+this.MapUrlFile, (key: string, type: string, data: unknown) => {
             this.onMapLoad(data);
         });
