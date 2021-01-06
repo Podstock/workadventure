@@ -110,6 +110,22 @@ video#myCamVideo{
     width: 450px;
     height: 150px;
 }
+
+/* override copyright btn*/
+.btn-cam-action#btn-copy-action {
+    position: absolute;
+    bottom: 0px;
+    left: 350px;
+    width: 150px;
+    height: 150px;
+}
+
+.copyright {
+    height: 100vh;
+    padding:1px;
+    background: #fff;
+}
+
 /*btn animation*/
 .btn-cam-action div{
     cursor: pointer;
@@ -149,6 +165,11 @@ video#myCamVideo{
 .btn-monitor{
     transition: all .2s;
     right: 224px;
+}
+.btn-copy{
+    transition: all .3s;
+    right: 44px;
+    opacity: 1;
 }
 /*.btn-call{
     transition: all .1s;
