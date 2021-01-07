@@ -48,7 +48,7 @@ class ConnectionManager {
             }
             let roomId: string
             if (connexionType === GameConnexionTypes.empty) {
-                var defaultMapUrl = window.location.host.replace('play.', 'maps.') + URL_ROOM_STARTED;
+                let defaultMapUrl = window.location.host.replace('play.', 'maps.') + URL_ROOM_STARTED;
                 if (URL_ROOM_STARTED.startsWith('http://') || URL_ROOM_STARTED.startsWith('https://')) {
                     defaultMapUrl = URL_ROOM_STARTED.replace('http://', '').replace('https://', '');
                 }
