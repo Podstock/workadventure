@@ -4,17 +4,32 @@ WORKDIR /usr/src
 COPY messages .
 RUN yarn install && yarn proto
 
-# we are rebuilding on each deploy to cope with the PUSHER_URL environment URL
-FROM thecodingmachine/nodejs:14-apache
 
-COPY --chown=docker:docker front .
-COPY --from=builder --chown=docker:docker /var/www/messages/generated /var/www/html/src/Messages/generated
+# webpack build
+FROM node:14-buster-slim as builder2
+WORKDIR /usr/src
+COPY front/yarn.lock front/package.json ./
+RUN yarn install
+
+COPY front .
+COPY --from=builder /usr/src/generated src/Messages/generated
+ENV NODE_ENV=production
 
 # Removing the iframe.html file from the final image as this adds a XSS attack.
 # iframe.html is only in dev mode to circumvent a limitation
 RUN rm dist/iframe.html
 
-RUN yarn install
+ARG PUSHER_URL=/pusher
+ARG ADMIN_URL=/admin
+ARG MAPS_URL=/maps
+ARG UPLOADER_URL=/uploader
+ARG START_ROOM_URL
+ARG JITSI_PRIVATE_MODE
+ARG JITSI_URL
+ARG STUN_SERVER
+ARG TURN_SERVER
+ARG TURN_USER
+ARG TURN_PASSWORD
 
 COPY front .
 COPY --from=builder /usr/src/generated src/Messages/generated
