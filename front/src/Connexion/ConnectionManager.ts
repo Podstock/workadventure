@@ -48,11 +48,10 @@ class ConnectionManager {
             }
             let roomId: string
             if (connexionType === GameConnexionTypes.empty) {
-                let defaultMapUrl = window.location.host.replace('play.', 'maps.') + URL_ROOM_STARTED;
+                roomId = urlManager.editUrlForRoom(URL_ROOM_STARTED, null, null);
                 if (URL_ROOM_STARTED.startsWith('http://') || URL_ROOM_STARTED.startsWith('https://')) {
-                    defaultMapUrl = URL_ROOM_STARTED.replace('http://', '').replace('https://', '');
+                    roomId = '/_/global/' + URL_ROOM_STARTED.replace('http://', '').replace('https://', '');
                 }
-                roomId = urlManager.editUrlForRoom(defaultMapUrl, null, null);
             } else {
                 roomId = window.location.pathname + window.location.hash;
             }
