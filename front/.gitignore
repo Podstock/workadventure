@@ -8,3 +8,4 @@
 *.sh
 /dist/index.html
 /dist/main.js*
+!templater.sh
