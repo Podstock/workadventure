@@ -1,5 +1,5 @@
 import Axios from "axios";
-import {API_URL, URL_ROOM_STARTED} from "../Enum/EnvironmentVariable";
+import {API_URL, START_ROOM_URL} from "../Enum/EnvironmentVariable";
 import {RoomConnection} from "./RoomConnection";
 import {OnConnectInterface, PositionInterface, ViewportInterface} from "./ConnexionModels";
 import {GameConnexionTypes, urlManager} from "../Url/UrlManager";
@@ -27,9 +27,9 @@ class ConnectionManager {
             const organizationSlug = data.organizationSlug;
             const worldSlug = data.worldSlug;
             const roomSlug = data.roomSlug;
-            urlManager.editUrlForRoom(roomSlug, organizationSlug, worldSlug);
 
-            const room = new Room(window.location.pathname + window.location.hash);
+            const room = new Room('/@/'+organizationSlug+'/'+worldSlug+'/'+roomSlug + window.location.hash);
+            urlManager.pushRoomIdToUrl(room);
             return Promise.resolve(room);
         } else if (connexionType === GameConnexionTypes.organization || connexionType === GameConnexionTypes.anonymous || connexionType === GameConnexionTypes.empty) {
             const localUser = localUserStore.getLocalUser();
@@ -48,10 +48,7 @@ class ConnectionManager {
             }
             let roomId: string
             if (connexionType === GameConnexionTypes.empty) {
-                roomId = urlManager.editUrlForRoom(URL_ROOM_STARTED, null, null);
-                if (URL_ROOM_STARTED.startsWith('http://') || URL_ROOM_STARTED.startsWith('https://')) {
-                    roomId = '/_/global/' + URL_ROOM_STARTED.replace('http://', '').replace('https://', '');
-                }
+                roomId = START_ROOM_URL;
             } else {
                 roomId = window.location.pathname + window.location.hash;
             }
