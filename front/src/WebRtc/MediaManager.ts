@@ -28,8 +28,8 @@ const videoConstraint: boolean|MediaTrackConstraints = {
     resizeMode: 'crop-and-scale',
     aspectRatio: 1.777777778
 };
-const audioConstraint: boolean|MediaTrackConstraints = {
-    //TODO: make these values configurable in the game settings menu and store them in localstorage
+const audioConstraint: MediaTrackConstraints = {
+    // TODO: Make these values configurable in the game settings menu and store them in local storage
     autoGainControl: false,
     echoCancellation: true,
     noiseSuppression: true
