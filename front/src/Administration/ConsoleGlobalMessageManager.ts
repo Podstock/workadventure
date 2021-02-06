@@ -162,12 +162,8 @@ export class ConsoleGlobalMessageManager {
 
         (async () => {
             try{
-                // Start loading CSS
-                const cssPromise = ConsoleGlobalMessageManager.loadCss();
                 // Import quill
                 const {default: Quill}:any = await import("quill"); // eslint-disable-line @typescript-eslint/no-explicit-any
-                // Wait for CSS to be loaded
-                await cssPromise;
 
                 const toolbarOptions = [
                     ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
@@ -264,27 +260,6 @@ export class ConsoleGlobalMessageManager {
         section.appendChild(div);
         section.appendChild(buttonDiv);
         this.divMessageConsole.appendChild(section);
-    }
-
-    private static loadCss(): Promise<void> {
-        return new Promise<void>((resolve, reject) => {
-            if (ConsoleGlobalMessageManager.cssLoaded) {
-                resolve();
-                return;
-            }
-            const fileref = document.createElement("link")
-            fileref.setAttribute("rel", "stylesheet")
-            fileref.setAttribute("type", "text/css")
-            fileref.setAttribute("href", "https://cdn.quilljs.com/1.3.7/quill.snow.css");
-            document.getElementsByTagName("head")[0].appendChild(fileref);
-            ConsoleGlobalMessageManager.cssLoaded = true;
-            fileref.onload = () => {
-                resolve();
-            }
-            fileref.onerror = () => {
-                reject();
-            }
-        });
     }
 
     sendMessage(){
