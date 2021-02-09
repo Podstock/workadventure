@@ -5,7 +5,7 @@ import Container = Phaser.GameObjects.Container;
 import type { GameScene } from "../Game/GameScene";
 import type { Character } from "../Entity/Character";
 import type { PositionInterface } from "../../Connexion/ConnexionModels";
-import type { ITiledMapLayer, ITiledMapLayerProperty } from "./ITiledMap";
+import type { ITiledMapTileLayer, ITiledMapLayerProperty } from "./ITiledMap";
 
 interface SpriteEntity {
     animation: string|false;
@@ -26,12 +26,12 @@ interface TileAnimation {
 export class InteractiveLayer extends Container {
     private lastUpdate: number;
     private allActive: boolean;
-    private layer: ITiledMapLayer;
+    private layer: ITiledMapTileLayer;
     private spritesCollection: Array<SpriteEntity>;
     
     private updateListener: Function;
     
-    constructor(scene: GameScene, layer: ITiledMapLayer) {
+    constructor(scene: GameScene, layer: ITiledMapTileLayer) {
         const { x, y } = layer;
 
         super(scene, x, y);
@@ -159,9 +159,7 @@ export class InteractiveLayer extends Container {
             const sprite = entity.sprite;
 
             if (sprite.anims.isPlaying) {
-                sprite.anims.play(entity.animation, false, sprite.anims.currentFrame.index);
-                // This line needs to be changed to the following if you update to the new phaser version 3.54.0
-                // sprite.anims.play({ key: entity.animation, startFrame: sprite.anims.currentFrame.index }, false);
+                sprite.anims.play({ key: entity.animation, startFrame: sprite.anims.currentFrame.index }, false);
             } else {
                 sprite.anims.play(entity.animation);
             }
@@ -192,10 +190,10 @@ export class InteractiveLayer extends Container {
      * Adds all tiles from the layer as sprites to the scene. It will also define the 
      * animation frames, if they aren't already defined.
      * 
-     * @param {ITiledMapLayer} layer 
+     * @param {ITiledMapTileLayer} layer 
      * @returns {void}
      */
-    private addSprites(layer: ITiledMapLayer): void {
+    private addSprites(layer: ITiledMapTileLayer): void {
         if (typeof layer.data === "string") {
             return;
         }
@@ -327,8 +325,8 @@ export class InteractiveLayer extends Container {
      * @param {string} name 
      * @returns {string|boolean|number|undefined}
      */
-    private getLayerProperty(name: string): string|boolean|number|undefined {
-        const properties: ITiledMapLayerProperty[] = this.layer.properties;
+    private getLayerProperty(name: string): string | boolean | number | undefined {
+        const properties: ITiledMapLayerProperty[] | undefined = this.layer.properties;
 
         if (!properties) {
             return undefined;

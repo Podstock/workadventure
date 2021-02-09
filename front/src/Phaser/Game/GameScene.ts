@@ -1171,7 +1171,7 @@ ${escapedMessage}
         this.Layers.push(Layer);
     }
 
-    createInteractiveLayer(layer: ITiledMapLayer): InteractiveLayer {
+    createInteractiveLayer(layer: ITiledMapTileLayer): InteractiveLayer {
         return new InteractiveLayer(this, layer);
     }
 
