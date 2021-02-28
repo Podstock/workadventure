@@ -47,6 +47,8 @@ class LayoutManager {
     private actionButtonTrigger: Map<string, Function> = new Map<string, Function>();
     private actionButtonInformation: Map<string, HTMLDivElement> = new Map<string, HTMLDivElement>();
 
+    private inGameConsoleMessage: Map<string, HTMLDivElement> = new Map<string, HTMLDivElement>();
+
     public setListener(centerListener: CenterListener|null) {
         this.listener = centerListener;
     }
@@ -391,6 +393,35 @@ class LayoutManager {
         setTimeout(() => {
             this.removeActionButton(id, userInputManager);
         }, 10000)
+    }
+
+    public addInGameConsoleMessage(id: string, text: string, customStyle: string){
+        //delete previous element
+        this.removeInGameConsoleMessage(id);
+
+        //create div and text html component
+        const p = document.createElement('p');
+        p.classList.add('action-body');
+        p.innerText = text;
+        p.setAttribute("style", customStyle);
+        const div = document.createElement('div');
+        div.classList.add('action');
+        div.id = id;
+        div.appendChild(p);
+
+        this.inGameConsoleMessage.set(id, div);
+
+        const mainContainer = HtmlUtils.getElementByIdOrFail<HTMLDivElement>('main-container');
+        mainContainer.appendChild(div);
+
+    }
+    public removeInGameConsoleMessage(id: string) {
+        //delete previous element
+        const previousDiv = this.inGameConsoleMessage.get(id);
+        if(previousDiv){
+            previousDiv.remove();
+            this.inGameConsoleMessage.delete(id);
+        }
     }
 }
 
