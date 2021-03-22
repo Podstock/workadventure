@@ -497,7 +497,6 @@ export class GameScene extends DirtyScene implements CenterListener {
                 }, 1000);
             }
         }
-
         copyrightInfo.initCopyrightInfo(mapDirUrl);
 
         this.createPromiseResolve();
