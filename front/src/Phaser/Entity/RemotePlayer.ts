@@ -1,7 +1,7 @@
 import {GameScene} from "../Game/GameScene";
 import {PointInterface} from "../../Connexion/ConnexionModels";
 import {Character} from "../Entity/Character";
-import {Sprite} from "./Sprite";
+import {PlayerAnimationDirections} from "../Player/Animation";
 
 /**
  * Class representing the sprite of a remote player (a player that plays on another computer)
@@ -16,7 +16,7 @@ export class RemotePlayer extends Character {
         y: number,
         name: string,
         texturesPromise: Promise<string[]>,
-        direction: string,
+        direction: PlayerAnimationDirections,
         moving: boolean
     ) {
         super(Scene, x, y, texturesPromise, name, direction, moving, 1);
@@ -26,7 +26,7 @@ export class RemotePlayer extends Character {
     }
 
     updatePosition(position: PointInterface): void {
-        this.playAnimation(position.direction, position.moving);
+        this.playAnimation(position.direction as PlayerAnimationDirections, position.moving);
         this.setX(position.x);
         this.setY(position.y);
         

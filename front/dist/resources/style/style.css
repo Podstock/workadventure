@@ -39,6 +39,7 @@ body .message-info.warning{
     position: relative;
     transition: all 0.2s ease;
     background-color: #00000099;
+    cursor: url('/resources/logos/cursor_pointer.png'), pointer;
 }
 .video-container i{
     position: absolute;
@@ -53,25 +54,71 @@ body .message-info.warning{
     font-size: 28px;
     color: white;
 }
-.video-container img.active{
-    display: block;
-}
+
 .video-container img{
     position: absolute;
     display: none;
-    width: 15px;
-    height: 15px;
-    background: #d93025;
-    border-radius: 48px;
+    width: 25px;
+    height: 25px;
     left: 5px;
     bottom: 5px;
     padding: 10px;
     z-index: 2;
 }
+.video-container img.block-logo {
+    left: 30%;
+    bottom: 15%;
+    width: 150px;
+    height: 150px;
+}
 
-.video-container img.report{
+.video-container button.report{
+    display: block;
+    cursor: url('/resources/logos/cursor_pointer.png'), pointer;
+    background: none;
+    background-color: rgba(0, 0, 0, 0);
+    border: none;
+    background-color: black;
+    border-radius: 15px;
+    position: absolute;
+    width: 0px;
+    height: 35px;
     right: 5px;
-    left: auto;
+    bottom: 5px;
+    padding: 0px;
+    overflow: hidden;
+    z-index: 2;
+    transition: all .5s ease;
+}
+
+.video-container:hover button.report{
+    width: 35px;
+    padding: 10px;
+}
+
+.video-container button.report:hover {
+    width: 150px;
+}
+
+.video-container button.report img{
+    position: absolute;
+    display: block;
+    bottom: 5px;
+    left: 5px;
+    margin: 0;
+    padding: 0;
+    cursor: url('/resources/logos/cursor_pointer.png'), pointer;
+}
+.video-container button.report span{
+    position: absolute;
+    bottom: 8px;
+    left: 36px;
+    color: white;
+    font-size: 16px;
+    cursor: url('/resources/logos/cursor_pointer.png'), pointer;
+}
+.video-container img.active {
+    display: block !important;
 }
 
 .video-container video{
@@ -171,10 +218,6 @@ video#myCamVideo{
     right: 44px;
     opacity: 1;
 }
-/*.btn-call{
-    transition: all .1s;
-    left: 0px;
-}*/
 .btn-cam-action div img{
     height: 22px;
     width: 30px;
@@ -302,35 +345,7 @@ body {
         max-height: 25%;
     }
 
-    #cowebsite {
-        right: 0;
-        top: 0;
-        width: 50%;
-        height: 100vh;
-    }
-    #cowebsite.loading {
-        transform: translateX(90%);
-    }
-    #cowebsite.hidden {
-        transform: translateX(100%);
-    }
-
-    #cowebsite .close-btn{
-        position: absolute;
-        top: 10px;
-        right: -100px;
-        background: none;
-        border: none;
-        cursor: pointer;
-        animation: right .2s ease;
-    }
-    #cowebsite .close-btn img{
-        height: 15px;
-        right: 15px;
-    }
-    #cowebsite:hover .close-btn{
-        right: 10px;
-    }
+    
 }
 @media (max-aspect-ratio: 1/1) {
     .game-overlay {
@@ -349,38 +364,11 @@ body {
     .sidebar > div:hover {
         max-width: 25%;
     }
-
-    #cowebsite {
-        left: 0;
-        bottom: 0;
-        width: 100%;
-        height: 50%;
-    }
-    #cowebsite.loading {
-        transform: translateY(90%);
-    }
-    #cowebsite.hidden {
-        transform: translateY(100%);
-    }
 }
 
 #game {
     width: 100%;
     position: relative; /* Position relative is needed for the game-overlay. */
-}
-
-/* A potentially shared website could appear in an iframe in the cowebsite space. */
-#cowebsite {
-    position: fixed;
-    transition: transform 0.5s;
-}
-#cowebsite.loading {
-    background-color: gray;
-}
-
-#cowebsite > iframe {
-    width: 100%;
-    height: 100%;
 }
 
 .audioplayer:first-child  {
@@ -395,10 +383,14 @@ body {
     justify-content: center;
 }
 
+.audioplayer > div {
+    padding-right: 1.2rem;
+}
+
 #audioplayerctrl {
     position: fixed;
     top: 0;
-    right: 50%;
+    right: calc(50% - 120px);
     padding: 0.3rem 0.5rem;
     color: white;
     transition: transform 0.5s;
@@ -588,10 +580,9 @@ input[type=range]:focus::-ms-fill-upper {
 }
 
 .chat-mode {
-    display: flex;
+    display: grid;
     width: 100%;
 
-    flex-wrap: wrap;
     align-items: flex-start;
 
     padding: 1%;
@@ -607,24 +598,20 @@ input[type=range]:focus::-ms-fill-upper {
 .chat-mode > div:hover {
     margin: 0%;
 }
-.chat-mode.one-col > div {
-    flex-basis: 98%;
+.chat-mode.one-col {
+    grid-template-columns: repeat(1, 1fr);
 }
 
-.chat-mode.two-col > div {
-    flex-basis: 48%;
+.chat-mode.two-col {
+    grid-template-columns: repeat(2, 1fr);
 }
 
-.chat-mode.three-col > div {
-    flex-basis: 31.333333%;
+.chat-mode.three-col {
+    grid-template-columns: repeat(3, 1fr);
 }
 
-.chat-mode.four-col > div {
-    flex-basis: 23%;
-}
-
-.chat-mode > div:last-child {
-    flex-grow: 5;
+.chat-mode.four-col {
+    grid-template-columns: repeat(4, 1fr);
 }
 
 /*CONSOLE*/
@@ -1099,7 +1086,7 @@ div.modal-report-user{
     white-space: pre-wrap;
     word-wrap: break-word;
 }
-.discussion .messages .message p.a{
+.discussion .messages .message p a{
     color: white;
 }
 
