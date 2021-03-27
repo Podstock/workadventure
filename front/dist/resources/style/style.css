@@ -151,6 +151,7 @@ video#myCamVideo{
 
 
 .btn-cam-action {
+    z-index: 1;
     position: absolute;
     bottom: 0px;
     right: 0px;
