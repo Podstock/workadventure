@@ -96,6 +96,7 @@ import {DEPTH_OVERLAY_INDEX} from "./DepthIndexes";
 import {waScaleManager} from "../Services/WaScaleManager";
 import {peerStore} from "../../Stores/PeerStore";
 import {EmoteManager} from "./EmoteManager";
+import { InteractiveLayer } from "../Map/InteractiveLayer";
 
 export interface GameSceneInitInterface {
     initPosition: PointInterface|null,
@@ -418,15 +419,19 @@ export class GameScene extends DirtyScene implements CenterListener {
         let depth = -2;
         for (const layer of this.gameMap.layersIterator) {
             if (layer.type === 'tilelayer') {
-                this.addLayer(this.Map.createLayer(layer.name, this.Terrains, 0, 0).setDepth(depth));
+                if (this.isLayerInteractive(layer) === false) {
+                    this.addLayer(this.Map.createLayer(layer.name, this.Terrains, 0, 0).setDepth(depth));
 
-                const exitSceneUrl = this.getExitSceneUrl(layer);
-                if (exitSceneUrl !== undefined) {
-                    this.loadNextGame(exitSceneUrl);
-                }
-                const exitUrl = this.getExitUrl(layer);
-                if (exitUrl !== undefined) {
-                    this.loadNextGame(exitUrl);
+                    const exitSceneUrl = this.getExitSceneUrl(layer);
+                    if (exitSceneUrl !== undefined) {
+                        this.loadNextGame(exitSceneUrl);
+                    }
+                    const exitUrl = this.getExitUrl(layer);
+                    if (exitUrl !== undefined) {
+                        this.loadNextGame(exitUrl);
+                    }
+                } else {
+                    this.addInteractiveLayer(layer);
                 }
             }
             if (layer.type === 'objectgroup' && layer.name === 'floorLayer') {
@@ -1058,6 +1063,10 @@ ${escapedMessage}
         return this.getProperty(layer, "exitUrl") as string|undefined;
     }
 
+    private isLayerInteractive(layer: ITiledMapLayer): boolean {
+        return Boolean(this.getProperty(layer, "interactive"));
+    }
+
     /**
      * @deprecated the map property exitSceneUrl is deprecated
      */
@@ -1136,6 +1145,10 @@ ${escapedMessage}
 
     addLayer(Layer : Phaser.Tilemaps.TilemapLayer){
         this.Layers.push(Layer);
+    }
+
+    addInteractiveLayer(layer: ITiledMapLayer): void {
+        new InteractiveLayer(this, layer);
     }
 
     createCollisionWithPlayer() {
