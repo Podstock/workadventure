@@ -62,6 +62,9 @@ class IframeListener {
     private readonly _loadSoundStream: Subject<LoadSoundEvent> = new Subject();
     public readonly loadSoundStream = this._loadSoundStream.asObservable();
 
+    private readonly _unregisterIFrameStream: Subject<void> = new Subject();
+    public readonly unregisterIFrameStream = this._unregisterIFrameStream.asObservable();
+
     private readonly iframes = new Set<HTMLIFrameElement>();
     private readonly scripts = new Map<string, HTMLIFrameElement>();
 
@@ -144,6 +147,7 @@ class IframeListener {
     }
 
     unregisterIframe(iframe: HTMLIFrameElement): void {
+        this._unregisterIFrameStream.next();
         this.iframes.delete(iframe);
     }
 
