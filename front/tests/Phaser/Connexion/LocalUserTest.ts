@@ -21,7 +21,7 @@ describe("isUserNameValid()", () => {
         expect(isUserNameValid(' ')).toBe(false);
     });
     it("should not validate special characters", () => {
-        expect(isUserNameValid('a&-')).toBe(false);
+        expect(isUserNameValid('a@*')).toBe(false);
     });
 });
 
