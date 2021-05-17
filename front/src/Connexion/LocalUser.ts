@@ -8,7 +8,7 @@ export interface CharacterTexture {
 }
 
 export function isUserNameValid(value: string): boolean {
-    const regexp = new RegExp('^[A-Za-z0-9\-\+\?\_\&\!]{1,'+MAX_USERNAME_LENGTH+'}$');
+    const regexp = new RegExp('^[A-Za-z0-9-+?_&!]{1,'+MAX_USERNAME_LENGTH+'}$');
     return regexp.test(value);
 }
 
