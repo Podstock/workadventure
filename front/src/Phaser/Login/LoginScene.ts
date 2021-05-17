@@ -4,6 +4,7 @@ import {ResizableScene} from "./ResizableScene";
 import { localUserStore } from "../../Connexion/LocalUserStore";
 import {MenuScene} from "../Menu/MenuScene";
 import { isUserNameValid } from "../../Connexion/LocalUser";
+import { MAX_USERNAME_LENGTH } from "../../Enum/EnvironmentVariable";
 
 export const LoginSceneName = "LoginScene";
 
@@ -35,7 +36,7 @@ export class LoginScene extends ResizableScene {
         inputElement.value = localUserStore.getName() ?? '';
         inputElement.focus();
         inputElement.addEventListener('keypress', (event: KeyboardEvent) => {
-            if(inputElement.value.length > 7){
+            if(inputElement.value.length >= MAX_USERNAME_LENGTH){
                 event.preventDefault();
                 return;
             }

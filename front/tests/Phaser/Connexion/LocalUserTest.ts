@@ -1,5 +1,6 @@
 import "jasmine";
-import {areCharacterLayersValid, isUserNameValid, maxUserNameLength} from "../../../src/Connexion/LocalUser";
+import {areCharacterLayersValid, isUserNameValid} from "../../../src/Connexion/LocalUser";
+import {MAX_USERNAME_LENGTH} from "../../../src/Enum/EnvironmentVariable";
 
 describe("isUserNameValid()", () => {
     it("should validate name with letters", () => {
@@ -11,7 +12,7 @@ describe("isUserNameValid()", () => {
     });
     it("should not validate string with too many letters", () => {
         let testString = '';
-        for (let i = 0; i < maxUserNameLength + 2; i++) {
+        for (let i = 0; i < MAX_USERNAME_LENGTH + 2; i++) {
             testString += 'a';
         }
         expect(isUserNameValid(testString)).toBe(false);

@@ -52,7 +52,8 @@ services:
         TURN_PASSWORD: "$TURN_PASSWORD"
         TURN_SERVER: "$TURN_SERVER"
         TURN_USER: "$TURN_USER"
-        MAX_PER_GROUP: "$MAX_PER_GROUP"
+        MAX_PER_GROUP: $MAX_PER_GROUP
+        MAX_USERNAME_LENGTH: $MAX_USERNAME_LENGTH
     labels:
       - "traefik.http.routers.front.rule=Host(`${BASE_DOMAIN}`) && PathPrefix(`/`)"
       - "traefik.http.routers.front.entryPoints=web,websecure"
