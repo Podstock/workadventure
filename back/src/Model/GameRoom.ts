@@ -2,12 +2,12 @@ import {PointInterface} from "./Websocket/PointInterface";
 import {Group} from "./Group";
 import {User, UserSocket} from "./User";
 import {PositionInterface} from "_Model/PositionInterface";
-import {EntersCallback, LeavesCallback, MovesCallback} from "_Model/Zone";
+import {EmoteCallback, EntersCallback, LeavesCallback, MovesCallback} from "_Model/Zone";
 import {PositionNotifier} from "./PositionNotifier";
 import {Movable} from "_Model/Movable";
 import {extractDataFromPrivateRoomId, extractRoomSlugPublicRoomId, isRoomAnonymous} from "./RoomIdentifier";
 import {arrayIntersect} from "../Services/ArrayHelper";
-import {JoinRoomMessage} from "../Messages/generated/messages_pb";
+import {EmoteEventMessage, JoinRoomMessage} from "../Messages/generated/messages_pb";
 import {ProtobufUtils} from "../Model/Websocket/ProtobufUtils";
 import {ZoneSocket} from "src/RoomManager";
 import {Admin} from "../Model/Admin";
@@ -38,12 +38,10 @@ export class GameRoom {
 
     private readonly positionNotifier: PositionNotifier;
     public readonly roomId: string;
-    public readonly anonymous: boolean;
-    public tags: string[];
-    public policyType: GameRoomPolicyTypes;
     public readonly roomSlug: string;
     public readonly worldSlug: string = '';
     public readonly organizationSlug: string = '';
+    private versionNumber:number = 1;
     private nextUserId: number = 1;
 
     constructor(roomId: string,
@@ -53,14 +51,12 @@ export class GameRoom {
                 groupRadius: number,
                 onEnters: EntersCallback,
                 onMoves: MovesCallback,
-                onLeaves: LeavesCallback)
-    {
+                onLeaves: LeavesCallback,
+                onEmote: EmoteCallback,
+    ) {
         this.roomId = roomId;
-        this.anonymous = isRoomAnonymous(roomId);
-        this.tags = [];
-        this.policyType = GameRoomPolicyTypes.ANONYMOUS_POLICY;
 
-        if (this.anonymous) {
+        if (isRoomAnonymous(roomId)) {
             this.roomSlug = extractRoomSlugPublicRoomId(this.roomId);
         } else {
             const {organizationSlug, worldSlug, roomSlug} = extractDataFromPrivateRoomId(this.roomId);
@@ -79,7 +75,7 @@ export class GameRoom {
         this.minDistance = minDistance;
         this.groupRadius = groupRadius;
         // A zone is 10 sprites wide.
-        this.positionNotifier = new PositionNotifier(320, 320, onEnters, onMoves, onLeaves);
+        this.positionNotifier = new PositionNotifier(320, 320, onEnters, onMoves, onLeaves, onEmote);
     }
 
     public getGroups(): Group[] {
@@ -110,7 +106,8 @@ export class GameRoom {
             socket,
             joinRoomMessage.getTagList(),
             joinRoomMessage.getName(),
-            ProtobufUtils.toCharacterLayerObjects(joinRoomMessage.getCharacterlayerList())
+            ProtobufUtils.toCharacterLayerObjects(joinRoomMessage.getCharacterlayerList()),
+            joinRoomMessage.getCompanion()
         );
         this.nextUserId++;
         this.users.set(user.id, user);
@@ -304,10 +301,6 @@ export class GameRoom {
         return this.itemsState;
     }
 
-    public canAccess(userTags: string[]): boolean {
-        return arrayIntersect(userTags, this.tags);
-    }
-
     public addZoneListener(call: ZoneSocket, x: number, y: number): Set<Movable> {
         return this.positionNotifier.addZoneListener(call, x, y);
     }
@@ -327,5 +320,14 @@ export class GameRoom {
 
     public adminLeave(admin: Admin): void {
         this.admins.delete(admin);
+    }
+    
+    public incrementVersion(): number {
+        this.versionNumber++
+        return this.versionNumber;
+    }
+
+    public emitEmoteEvent(user: User, emoteEventMessage: EmoteEventMessage) {
+        this.positionNotifier.emitEmoteEvent(user, emoteEventMessage);
     }
 }

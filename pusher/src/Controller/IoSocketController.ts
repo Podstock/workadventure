@@ -12,7 +12,8 @@ import {
     WebRtcSignalToServerMessage,
     PlayGlobalMessage,
     ReportPlayerMessage,
-    QueryJitsiJwtMessage, SendUserMessage, ServerToClientMessage
+    EmoteEventMessage,
+    QueryJitsiJwtMessage, SendUserMessage, ServerToClientMessage, CompanionMessage, EmotePromptMessage
 } from "../Messages/generated/messages_pb";
 import {UserMovesMessage} from "../Messages/generated/messages_pb";
 import {TemplatedApp} from "uWebSockets.js"
@@ -117,15 +118,15 @@ export class IoSocketController {
                         upgradeAborted.aborted = true;
                     });
 
-                    try {
-                        const url = req.getUrl();
-                        const query = parse(req.getQuery());
-                        const websocketKey = req.getHeader('sec-websocket-key');
-                        const websocketProtocol = req.getHeader('sec-websocket-protocol');
-                        const websocketExtensions = req.getHeader('sec-websocket-extensions');
-                        const IPAddress = req.getHeader('x-forwarded-for');
+                    const url = req.getUrl();
+                    const query = parse(req.getQuery());
+                    const websocketKey = req.getHeader('sec-websocket-key');
+                    const websocketProtocol = req.getHeader('sec-websocket-protocol');
+                    const websocketExtensions = req.getHeader('sec-websocket-extensions');
+                    const IPAddress = req.getHeader('x-forwarded-for');
 
-                        const roomId = query.roomId;
+                    const roomId = query.roomId;
+                    try {
                         if (typeof roomId !== 'string') {
                             throw new Error('Undefined room ID: ');
                         }
@@ -138,6 +139,14 @@ export class IoSocketController {
                         const left = Number(query.left);
                         const right = Number(query.right);
                         const name = query.name;
+
+                        let companion: CompanionMessage|undefined = undefined;
+
+                        if (typeof query.companion === 'string') {
+                            companion = new CompanionMessage();
+                            companion.setName(query.companion);
+                        }
+
                         if (typeof name !== 'string') {
                             throw new Error('Expecting name');
                         }
@@ -174,15 +183,16 @@ export class IoSocketController {
                                         // If we get an HTTP 404, the token is invalid. Let's perform an anonymous login!
                                         console.warn('Cannot find user with uuid "'+userUuid+'". Performing an anonymous login instead.');
                                     } else if(err?.response?.status == 403) {
-                                        // If we get an HTTP 404, the world is full. We need to broadcast a special error to the client.
-                                        // we finish immediatly the upgrade then we will close the socket as soon as it starts opening. 
-                                        res.upgrade({
+                                        // If we get an HTTP 403, the world is full. We need to broadcast a special error to the client.
+                                        // we finish immediately the upgrade then we will close the socket as soon as it starts opening.
+                                        return res.upgrade({
                                             rejected: true,
+                                            message: err?.response?.data.message,
+                                            status: err?.response?.status
                                         }, websocketKey,
                                         websocketProtocol,
                                         websocketExtensions,
                                         context);
-                                        return;
                                     }else{
                                         throw err;
                                     }
@@ -190,16 +200,16 @@ export class IoSocketController {
                                 memberMessages = userData.messages;
                                 memberTags = userData.tags;
                                 memberTextures = userData.textures;
-                                if (!room.anonymous && room.policyType === GameRoomPolicyTypes.USE_TAGS_POLICY && (userData.anonymous === true || !room.canAccess(memberTags))) {
-                                    throw new Error('No correct tags')
+                                if (!room.public && room.policyType === GameRoomPolicyTypes.USE_TAGS_POLICY && (userData.anonymous === true || !room.canAccess(memberTags))) {
+                                    throw new Error('Insufficient privileges to access this room')
                                 }
-                                if (!room.anonymous && room.policyType === GameRoomPolicyTypes.MEMBERS_ONLY_POLICY && userData.anonymous === true) {
-                                    throw new Error('No correct member')
+                                if (!room.public && room.policyType === GameRoomPolicyTypes.MEMBERS_ONLY_POLICY && userData.anonymous === true) {
+                                    throw new Error('Use the login URL to connect')
                                 }
                             } catch (e) {
                                 console.log('access not granted for user '+userUuid+' and room '+roomId);
                                 console.error(e);
-                                throw new Error('Client cannot acces this ressource.')
+                                throw new Error('User cannot access this world')
                             }
                         }
 
@@ -221,6 +231,7 @@ export class IoSocketController {
                                 IPAddress,
                                 roomId,
                                 name,
+                                companion,
                                 characterLayers: characterLayerObjs,
                                 messages: memberMessages,
                                 tags: memberTags,
@@ -245,23 +256,35 @@ export class IoSocketController {
                             context);
 
                     } catch (e) {
-                        if (e instanceof Error) {
+                        /*if (e instanceof Error) {
                             console.log(e.message);
                             res.writeStatus("401 Unauthorized").end(e.message);
                         } else {
                             res.writeStatus("500 Internal Server Error").end('An error occurred');
-                        }
-                        return;
+                        }*/
+                        return res.upgrade({
+                            rejected: true,
+                            message: e.message ? e.message : '500 Internal Server Error'
+                        }, websocketKey,
+                        websocketProtocol,
+                        websocketExtensions,
+                        context);
                     }
                 })();
             },
             /* Handlers */
             open: (ws) => {
                 if(ws.rejected === true) {
-                    socketManager.emitWorldFullMessage(ws);
+                    //FIX ME to use status code
+                    if(ws.message === 'World is full'){
+                        socketManager.emitWorldFullMessage(ws);
+                    }else{
+                        socketManager.emitConnexionErrorMessage(ws, ws.message as string);
+                    }
                     ws.close();
+                    return;
                 }
-                
+
                 // Let's join the room
                 const client = this.initClient(ws);
                 socketManager.handleJoinRoom(client);
@@ -308,6 +331,8 @@ export class IoSocketController {
                     socketManager.handleReportMessage(client, message.getReportplayermessage() as ReportPlayerMessage);
                 } else if (message.hasQueryjitsijwtmessage()){
                     socketManager.handleQueryJitsiJwtMessage(client, message.getQueryjitsijwtmessage() as QueryJitsiJwtMessage);
+                } else if (message.hasEmotepromptmessage()){
+                    socketManager.handleEmotePromptMessage(client, message.getEmotepromptmessage() as EmotePromptMessage);
                 }
 
                     /* Ok is false if backpressure was built up, wait for drain */
@@ -350,6 +375,7 @@ export class IoSocketController {
         client.tags = ws.tags;
         client.textures = ws.textures;
         client.characterLayers = ws.characterLayers;
+        client.companion = ws.companion;
         client.roomId = ws.roomId;
         client.listenedZones = new Set<Zone>();
         return client;

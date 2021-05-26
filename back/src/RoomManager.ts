@@ -5,12 +5,13 @@ import {
     AdminPusherToBackMessage,
     AdminRoomMessage,
     BanMessage,
+    EmotePromptMessage,
     EmptyMessage,
     ItemEventMessage,
     JoinRoomMessage,
     PlayGlobalMessage,
     PusherToBackMessage,
-    QueryJitsiJwtMessage,
+    QueryJitsiJwtMessage, RefreshRoomPromptMessage,
     ServerToAdminClientMessage,
     ServerToClientMessage,
     SilentMessage,
@@ -71,6 +72,8 @@ const roomManager: IRoomManagerServer = {
                         socketManager.emitPlayGlobalMessage(room, message.getPlayglobalmessage() as PlayGlobalMessage);
                     } else if (message.hasQueryjitsijwtmessage()){
                         socketManager.handleQueryJitsiJwtMessage(user, message.getQueryjitsijwtmessage() as QueryJitsiJwtMessage);
+                    } else if (message.hasEmotepromptmessage()){
+                        socketManager.handleEmoteEventMessage(room, user, message.getEmotepromptmessage() as EmotePromptMessage);
                     }else if (message.hasSendusermessage()) {
                         const sendUserMessage = message.getSendusermessage();
                         if(sendUserMessage !== undefined) {
@@ -191,6 +194,10 @@ const roomManager: IRoomManagerServer = {
     },
     sendWorldFullWarningToRoom(call: ServerUnaryCall<WorldFullWarningToRoomMessage>, callback: sendUnaryData<EmptyMessage>): void {
         socketManager.dispatchWorlFullWarning(call.request.getRoomid());
+        callback(null, new EmptyMessage());
+    },
+    sendRefreshRoomPrompt(call: ServerUnaryCall<RefreshRoomPromptMessage>, callback: sendUnaryData<EmptyMessage>): void {
+        socketManager.dispatchRoomRefresh(call.request.getRoomid());
         callback(null, new EmptyMessage());
     },
 };

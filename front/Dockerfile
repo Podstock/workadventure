@@ -4,10 +4,16 @@ WORKDIR /usr/src
 COPY messages .
 RUN yarn install && yarn proto
 
-# webpack build
-FROM node:14-buster-slim as builder2
-WORKDIR /usr/src
-COPY front/yarn.lock front/package.json ./
+# we are rebuilding on each deploy to cope with the PUSHER_URL environment URL
+FROM thecodingmachine/nodejs:14-apache
+
+COPY --chown=docker:docker front .
+COPY --from=builder --chown=docker:docker /var/www/messages/generated /var/www/html/src/Messages/generated
+
+# Removing the iframe.html file from the final image as this adds a XSS attack.
+# iframe.html is only in dev mode to circumvent a limitation
+RUN rm dist/iframe.html
+
 RUN yarn install
 
 COPY front .

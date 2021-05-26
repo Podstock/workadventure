@@ -29,12 +29,17 @@
 
 
         <base href="/">
+        <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+        <link href="https://unpkg.com/nes.css@2.3.0/css/nes.min.css" rel="stylesheet" />
+
         <title>Binary Kitchen World</title>
     </head>
     <body id="body" style="margin: 0; background-color: #000">
         <div class="main-container" id="main-container">
             <!-- Create the editor container -->
             <div id="game" class="game">
+                <div id="svelte-overlay">
+                </div>
                 <div id="game-overlay" class="game-overlay">
                     <div id="main-section" class="main-section">
                     </div>
@@ -51,23 +56,29 @@
                     <div id="activeCam" class="activeCam">
                         <div id="div-myCamVideo" class="video-container">
                             <video id="myCamVideo" autoplay muted></video>
+                            <div id="mySoundMeter" class="sound-progress">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
                         </div>
                     </div>
                     <div class="btn-cam-action">
-                        <div id="btn-micro" class="btn-micro">
-                            <img id="microphone" src="resources/logos/microphone.svg">
-                            <img id="microphone-close" src="resources/logos/microphone-close.svg">
+                        <div id="btn-monitor" class="btn-monitor">
+                            <img id="monitor" src="resources/logos/monitor.svg">
+                            <img id="monitor-close" src="resources/logos/monitor-close.svg">
                         </div>
                         <div id="btn-video" class="btn-video">
                             <img id="cinema" src="resources/logos/cinema.svg">
                             <img id="cinema-close" src="resources/logos/cinema-close.svg">
                         </div>
-                        <div id="btn-monitor" class="btn-monitor">
-                            <img id="monitor" src="resources/logos/monitor.svg">
-                            <img id="monitor-close" src="resources/logos/monitor-close.svg">
+                        <div id="btn-micro" class="btn-micro">
+                            <img id="microphone" src="resources/logos/microphone.svg">
+                            <img id="microphone-close" src="resources/logos/microphone-close.svg">
                         </div>
                     </div>
-
                 </div>
             </div>
             <div id="cowebsite" class="cowebsite hidden">
@@ -76,11 +87,11 @@
                 </aside>
                 <main id="cowebsite-main">
                 </main>
-                <button class="top-right-btn" id="cowebsite-fullscreen">
-                    <img id="cowebsite-fullscreen-open" src="resources/logos/monitor.svg"/>
-                    <img id="cowebsite-fullscreen-close" style="display: none;" src="resources/logos/monitor-close.svg"/>
+                <button class="top-right-btn" id="cowebsite-fullscreen" alt="fullscreen mode">
+                    <img id="cowebsite-fullscreen-open" src="resources/logos/fullscreen.svg"/>
+                    <img id="cowebsite-fullscreen-close" style="display: none;" src="resources/logos/fullscreen-exit.svg"/>
                 </button>
-                <button class="top-right-btn" id="cowebsite-close">
+                <button class="top-right-btn" id="cowebsite-close" alt="close the iframe">
                     <img src="resources/logos/close.svg"/>
                 </button>
             </div>
@@ -102,7 +113,7 @@
                     </div>
                 </div>
                 <div class="audioplayer">
-                    <label id="label-audioplayer_decrease_while_talking" for="audiooplayer_decrease_while_talking" title="decrease background volume by 50% when entering conversations">
+                    <label id="label-audioplayer_decrease_while_talking" for="audioplayer_decrease_while_talking" title="decrease background volume by 50% when entering conversations">
                         reduce in conversations
                         <input type="checkbox" id="audioplayer_decrease_while_talking" checked />
                     </label>

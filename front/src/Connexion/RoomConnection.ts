@@ -1,4 +1,4 @@
-import {API_URL, UPLOADER_URL} from "../Enum/EnvironmentVariable";
+import {PUSHER_URL, UPLOADER_URL} from "../Enum/EnvironmentVariable";
 import Axios from "axios";
 import {
     BatchMessage,
@@ -27,10 +27,13 @@ import {
     SendJitsiJwtMessage,
     CharacterLayerMessage,
     PingMessage,
-    SendUserMessage, BanUserMessage
+    EmoteEventMessage,
+    EmotePromptMessage,
+    SendUserMessage,
+    BanUserMessage
 } from "../Messages/generated/messages_pb"
 
-import {UserSimplePeerInterface} from "../WebRtc/SimplePeer";
+import type {UserSimplePeerInterface} from "../WebRtc/SimplePeer";
 import Direction = PositionMessage.Direction;
 import {ProtobufClientUtils} from "../Network/ProtobufClientUtils";
 import {
@@ -41,11 +44,12 @@ import {
     ViewportInterface, WebRtcDisconnectMessageInterface,
     WebRtcSignalReceivedMessageInterface,
 } from "./ConnexionModels";
-import {BodyResourceDescriptionInterface} from "../Phaser/Entity/PlayerTextures";
+import type {BodyResourceDescriptionInterface} from "../Phaser/Entity/PlayerTextures";
 import {adminMessagesService} from "./AdminMessagesService";
 import {worldFullMessageStream} from "./WorldFullMessageStream";
 import {worldFullWarningStream} from "./WorldFullWarningStream";
 import {connectionManager} from "./ConnectionManager";
+import {emoteEventStream} from "./EmoteEventStream";
 
 const manualPingDelay = 20000;
 
@@ -66,9 +70,13 @@ export class RoomConnection implements RoomConnection {
      * @param token A JWT token containing the UUID of the user
      * @param roomId The ID of the room in the form "_/[instance]/[map_url]" or "@/[org]/[event]/[map]"
      */
-    public constructor(token: string|null, roomId: string, name: string, characterLayers: string[], position: PositionInterface, viewport: ViewportInterface) {
-        let url = API_URL.replace('http://', 'ws://').replace('https://', 'wss://');
-        url += '/room';
+    public constructor(token: string|null, roomId: string, name: string, characterLayers: string[], position: PositionInterface, viewport: ViewportInterface, companion: string|null) {
+        let url = new URL(PUSHER_URL, window.location.toString()).toString();
+        url = url.replace('http://', 'ws://').replace('https://', 'wss://');
+        if (!url.endsWith('/')) {
+            url += '/';
+        }
+        url += 'room';
         url += '?roomId='+(roomId ?encodeURIComponent(roomId):'');
         url += '&token='+(token ?encodeURIComponent(token):'');
         url += '&name='+encodeURIComponent(name);
@@ -81,6 +89,10 @@ export class RoomConnection implements RoomConnection {
         url += '&bottom='+Math.floor(viewport.bottom);
         url += '&left='+Math.floor(viewport.left);
         url += '&right='+Math.floor(viewport.right);
+
+        if (typeof companion === 'string') {
+            url += '&companion='+encodeURIComponent(companion);
+        }
 
         if (RoomConnection.websocketFactory) {
             this.socket = RoomConnection.websocketFactory(url);
@@ -115,7 +127,7 @@ export class RoomConnection implements RoomConnection {
 
             if (message.hasBatchmessage()) {
                 for (const subMessage of (message.getBatchmessage() as BatchMessage).getPayloadList()) {
-                    let event: string;
+                    let event: string|null = null;
                     let payload;
                     if (subMessage.hasUsermovedmessage()) {
                         event = EventMessage.USER_MOVED;
@@ -135,11 +147,16 @@ export class RoomConnection implements RoomConnection {
                     } else if (subMessage.hasItemeventmessage()) {
                         event = EventMessage.ITEM_EVENT;
                         payload = subMessage.getItemeventmessage();
+                    } else if (subMessage.hasEmoteeventmessage()) {
+                        const emoteMessage = subMessage.getEmoteeventmessage() as EmoteEventMessage;
+                        emoteEventStream.fire(emoteMessage.getActoruserid(), emoteMessage.getEmote());
                     } else {
                         throw new Error('Unexpected batch message type');
                     }
 
-                    this.dispatch(event, payload);
+                    if (event) {
+                        this.dispatch(event, payload);
+                    }
                 }
             } else if (message.hasRoomjoinedmessage()) {
                 const roomJoinedMessage = message.getRoomjoinedmessage() as RoomJoinedMessage;
@@ -161,7 +178,10 @@ export class RoomConnection implements RoomConnection {
             } else if (message.hasWorldfullmessage()) {
                 worldFullMessageStream.onMessage();
                 this.closed = true;
-            } else if (message.hasWebrtcsignaltoclientmessage()) {
+            } else if (message.hasWorldconnexionmessage()) {
+                worldFullMessageStream.onMessage(message.getWorldconnexionmessage()?.getMessage());
+                this.closed = true;
+            }else if (message.hasWebrtcsignaltoclientmessage()) {
                 this.dispatch(EventMessage.WEBRTC_SIGNAL, message.getWebrtcsignaltoclientmessage());
             } else if (message.hasWebrtcscreensharingsignaltoclientmessage()) {
                 this.dispatch(EventMessage.WEBRTC_SCREEN_SHARING_SIGNAL, message.getWebrtcscreensharingsignaltoclientmessage());
@@ -180,9 +200,11 @@ export class RoomConnection implements RoomConnection {
             } else if (message.hasSendusermessage()) {
                 adminMessagesService.onSendusermessage(message.getSendusermessage() as SendUserMessage);
             } else if (message.hasBanusermessage()) {
-                adminMessagesService.onSendusermessage(message.getSendusermessage() as BanUserMessage);
+                adminMessagesService.onSendusermessage(message.getBanusermessage() as BanUserMessage);
             } else if (message.hasWorldfullwarningmessage()) {
                 worldFullWarningStream.onMessage();
+            } else if (message.hasRefreshroommessage()) {
+                //todo: implement a way to notify the user the room was refreshed.
             } else {
                 throw new Error('Unknown message received');
             }
@@ -316,11 +338,14 @@ export class RoomConnection implements RoomConnection {
             }
         })
 
+        const companion = message.getCompanion();
+
         return {
             userId: message.getUserid(),
             name: message.getName(),
             characterLayers,
-            position: ProtobufClientUtils.toPointInterface(position)
+            position: ProtobufClientUtils.toPointInterface(position),
+            companion: companion ? companion.getName() : null
         }
     }
 
@@ -381,7 +406,7 @@ export class RoomConnection implements RoomConnection {
     public onConnectError(callback: (error: Event) => void): void {
         this.socket.addEventListener('error', callback)
     }
-    
+
     public onConnect(callback: (roomConnection: OnConnectInterface) => void): void {
         //this.socket.addEventListener('open', callback)
         this.onMessage(EventMessage.CONNECT, callback);
@@ -581,5 +606,15 @@ export class RoomConnection implements RoomConnection {
 
     public isAdmin(): boolean {
         return this.hasTag('admin');
+    }
+
+    public emitEmoteEvent(emoteName: string): void {
+        const emoteMessage = new EmotePromptMessage();
+        emoteMessage.setEmote(emoteName)
+
+        const clientToServerMessage = new ClientToServerMessage();
+        clientToServerMessage.setEmotepromptmessage(emoteMessage);
+
+        this.socket.send(clientToServerMessage.serializeBinary().buffer);
     }
 }

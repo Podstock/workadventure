@@ -26,7 +26,8 @@ import {
     GroupLeftZoneMessage,
     WorldFullWarningMessage,
     UserLeftZoneMessage,
-    BanUserMessage,
+    EmoteEventMessage,
+    BanUserMessage, RefreshRoomMessage, EmotePromptMessage,
 } from "../Messages/generated/messages_pb";
 import {User, UserSocket} from "../Model/User";
 import {ProtobufUtils} from "../Model/Websocket/ProtobufUtils";
@@ -41,7 +42,6 @@ import {
 } from "../Enum/EnvironmentVariable";
 import {Movable} from "../Model/Movable";
 import {PositionInterface} from "../Model/PositionInterface";
-import {adminApi, CharacterTexture} from "./AdminApi";
 import Jwt from "jsonwebtoken";
 import {JITSI_URL} from "../Enum/EnvironmentVariable";
 import {clientEventsEmitter} from "./ClientEventsEmitter";
@@ -68,6 +68,7 @@ export class SocketManager {
     private rooms: Map<string, GameRoom> = new Map<string, GameRoom>();
 
     constructor() {
+        
         clientEventsEmitter.registerToClientJoin((clientUUid: string, roomId: string) => {
             gaugeManager.incNbClientPerRoomGauge(roomId);
         });
@@ -129,15 +130,7 @@ export class SocketManager {
             if (viewport === undefined) {
                 throw new Error('Viewport not found in message');
             }
-
-            // sending to all clients in room except sender
-            /*client.position = {
-                x: position.x,
-                y: position.y,
-                direction,
-                moving: position.moving,
-            };
-            client.viewport = viewport;*/
+            
 
             // update position in the world
             room.updatePosition(user, ProtobufUtils.toPointInterface(position));
@@ -191,21 +184,6 @@ export class SocketManager {
             console.error(e);
         }
     }
-
-    // TODO: handle this message in pusher
-    /*async handleReportMessage(client: ExSocketInterface, reportPlayerMessage: ReportPlayerMessage) {
-        try {
-            const reportedSocket = this.sockets.get(reportPlayerMessage.getReporteduserid());
-            if (!reportedSocket) {
-                throw 'reported socket user not found';
-            }
-            //TODO report user on admin application
-            await adminApi.reportPlayer(reportedSocket.userUuid, reportPlayerMessage.getReportcomment(),  client.userUuid)
-        } catch (e) {
-            console.error('An error occurred on "handleReportMessage"');
-            console.error(e);
-        }
-    }*/
 
     emitVideo(room: GameRoom, user: User, data: WebRtcSignalToServerMessage): void {
         //send only at user
@@ -287,13 +265,9 @@ export class SocketManager {
                 GROUP_RADIUS,
                 (thing: Movable, fromZone: Zone|null, listener: ZoneSocket) => this.onZoneEnter(thing, fromZone, listener),
                 (thing: Movable, position:PositionInterface, listener: ZoneSocket) => this.onClientMove(thing, position, listener),
-                (thing: Movable, newZone: Zone|null, listener: ZoneSocket) => this.onClientLeave(thing, newZone, listener)
+                (thing: Movable, newZone: Zone|null, listener: ZoneSocket) => this.onClientLeave(thing, newZone, listener),
+                (emoteEventMessage:EmoteEventMessage, listener: ZoneSocket) => this.onEmote(emoteEventMessage, listener),
             );
-            if (!world.anonymous) {
-                const data = await adminApi.fetchMapDetails(world.organizationSlug, world.worldSlug, world.roomSlug)
-                world.tags = data.tags
-                world.policyType = Number(data.policy_type)
-            }
             gaugeManager.incNbRoomGauge();
             this.rooms.set(roomId, world);
         }
@@ -325,6 +299,7 @@ export class SocketManager {
             userJoinedZoneMessage.setCharacterlayersList(ProtobufUtils.toCharacterLayerMessages(thing.characterLayers));
             userJoinedZoneMessage.setPosition(ProtobufUtils.toPositionMessage(thing.getPosition()));
             userJoinedZoneMessage.setFromzone(this.toProtoZone(fromZone));
+            userJoinedZoneMessage.setCompanion(thing.companion);
 
             const subMessage = new SubToPusherMessage();
             subMessage.setUserjoinedzonemessage(userJoinedZoneMessage);
@@ -365,6 +340,14 @@ export class SocketManager {
         } else {
             console.error('Unexpected type for Movable.');
         }
+    }
+
+
+    private onEmote(emoteEventMessage: EmoteEventMessage, client: ZoneSocket) {
+        const subMessage = new SubToPusherMessage();
+        subMessage.setEmoteeventmessage(emoteEventMessage);
+
+        emitZoneMessage(subMessage, client);
     }
 
     private emitCreateUpdateGroupEvent(client: ZoneSocket, fromZone: Zone|null, group: Group): void {
@@ -538,19 +521,6 @@ export class SocketManager {
         return this.rooms;
     }
 
-    /**
-     *
-     * @param token
-     */
-    /*searchClientByUuid(uuid: string): ExSocketInterface | null {
-        for(const socket of this.sockets.values()){
-            if(socket.userUuid === uuid){
-                return socket;
-            }
-        }
-        return null;
-    }*/
-
 
     public handleQueryJitsiJwtMessage(user: User, queryJitsiJwtMessage: QueryJitsiJwtMessage) {
         const room = queryJitsiJwtMessage.getJitsiroom();
@@ -634,6 +604,7 @@ export class SocketManager {
                 userJoinedMessage.setName(thing.name);
                 userJoinedMessage.setCharacterlayersList(ProtobufUtils.toCharacterLayerMessages(thing.characterLayers));
                 userJoinedMessage.setPosition(ProtobufUtils.toPositionMessage(thing.getPosition()));
+                userJoinedMessage.setCompanion(thing.companion);
 
                 const subMessage = new SubToPusherMessage();
                 subMessage.setUserjoinedzonemessage(userJoinedMessage);
@@ -771,6 +742,32 @@ export class SocketManager {
 
             recipient.socket.write(clientMessage);
         });
+    }
+
+    dispatchRoomRefresh(roomId: string,): void {
+        const room = this.rooms.get(roomId);
+        if (!room) {
+            return;
+        }
+        
+        const versionNumber = room.incrementVersion();
+        room.getUsers().forEach((recipient) => {
+            const worldFullMessage = new RefreshRoomMessage();
+            worldFullMessage.setRoomid(roomId)
+            worldFullMessage.setVersionnumber(versionNumber)
+
+            const clientMessage = new ServerToClientMessage();
+            clientMessage.setRefreshroommessage(worldFullMessage);
+
+            recipient.socket.write(clientMessage);
+        });
+    }
+
+    handleEmoteEventMessage(room: GameRoom, user: User, emotePromptMessage: EmotePromptMessage) {
+        const emoteEventMessage = new EmoteEventMessage();
+        emoteEventMessage.setEmote(emotePromptMessage.getEmote());
+        emoteEventMessage.setActoruserid(user.id);
+        room.emitEmoteEvent(user, emoteEventMessage);
     }
 }
 
