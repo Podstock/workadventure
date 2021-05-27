@@ -218,7 +218,16 @@ video#myCamVideo{
     bottom: 0px;
     left: 350px;
     width: 150px;
-    height: 150px;
+    height: 50px;
+}
+
+.btn-cam-action#btn-copy-action div img{
+    height: 30px;
+    width: 30px;
+    top: calc(48px - 42px);
+    left: calc(48px - 47px);
+    position: relative;
+    cursor: pointer;
 }
 
 .copyright {
