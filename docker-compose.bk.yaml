@@ -1,0 +1,83 @@
+version: "3"
+services:
+  # the frontend is only built here - it is served directly via nginx
+  front:
+    image: thecodingmachine/nodejs:14
+    environment:
+      DEBUG_MODE: "$DEBUG_MODE"
+      JITSI_URL: "$JITSI_URL"
+      JITSI_PRIVATE_MODE: "$JITSI_PRIVATE_MODE"
+      NODE_ENV: development
+      PUSHER_URL: "//pusher.$DOMAIN"
+      UPLOADER_URL: "//uploader.$DOMAIN"
+      STARTUP_COMMAND_1: ./templater.sh
+      STARTUP_COMMAND_2: yarn install
+      STUN_SERVER: "stun:stun.l.google.com:19302"
+      TURN_SERVER: "turn:coturn.workadventu.re:443,turns:coturn.workadventu.re:443"
+      DISABLE_NOTIFICATIONS: "$DISABLE_NOTIFICATIONS"
+      SKIP_RENDER_OPTIMIZATIONS: "$SKIP_RENDER_OPTIMIZATIONS"
+      # Use TURN_USER/TURN_PASSWORD if your Coturn server is secured via hard coded credentials.
+      # Advice: you should instead use Coturn REST API along the TURN_STATIC_AUTH_SECRET in the Back container
+      TURN_USER: ""
+      TURN_PASSWORD: ""
+      START_ROOM_URL: "$START_ROOM_URL"
+      MAX_PER_GROUP: "$MAX_PER_GROUP"
+      MAX_USERNAME_LENGTH: "$MAX_USERNAME_LENGTH"
+    command: yarn run build
+    volumes:
+      - ./front:/usr/src/app
+  pusher:
+    image: thecodingmachine/nodejs:12
+    environment:
+      DEBUG: "socket:*"
+      STARTUP_COMMAND_1: yarn install
+      SECRET_JITSI_KEY: "$SECRET_JITSI_KEY"
+      SECRET_KEY: yourSecretKey
+      ADMIN_API_TOKEN: "$ADMIN_API_TOKEN"
+      API_URL: back:50051
+      JITSI_URL: "$JITSI_URL"
+      JITSI_ISS: "$JITSI_ISS"
+      FEDERATE_PUSHER: $FEDERATE_PUSHER
+    command: yarn run prod
+    ports:
+      - "127.0.0.1:8002:8080"
+    volumes:
+      - ./pusher:/usr/src/app
+  back:
+    image: thecodingmachine/nodejs:12
+    environment:
+      DEBUG: "*"
+      STARTUP_COMMAND_1: yarn install
+      SECRET_KEY: yourSecretKey
+      SECRET_JITSI_KEY: "$SECRET_JITSI_KEY"
+      ALLOW_ARTILLERY: "true"
+      ADMIN_API_TOKEN: "$ADMIN_API_TOKEN"
+      JITSI_URL: "$JITSI_URL"
+      JITSI_ISS: "$JITSI_ISS"
+      TURN_STATIC_AUTH_SECRET: SomeStaticAuthSecret
+      MAX_PER_GROUP: "MAX_PER_GROUP"
+    command: yarn run prod
+    volumes:
+      - ./back:/usr/src/app
+  uploader:
+    image: thecodingmachine/nodejs:12
+    environment:
+      DEBUG: "*"
+      STARTUP_COMMAND_1: yarn install
+    command: yarn run prod
+    ports:
+      - "127.0.0.1:8005:8080"
+    volumes:
+      - ./uploader:/usr/src/app
+  messages:
+    #image: thecodingmachine/nodejs:14
+    image: thecodingmachine/workadventure-back-base:latest
+    environment:
+      #STARTUP_COMMAND_0: sudo apt-get install -y inotify-tools
+      STARTUP_COMMAND_1: yarn install
+      STARTUP_COMMAND_2: yarn run proto:watch
+    volumes:
+      - ./messages:/usr/src/app
+      - ./back:/usr/src/back
+      - ./front:/usr/src/front
+      - ./pusher:/usr/src/pusher
