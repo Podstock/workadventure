@@ -93,7 +93,7 @@ class CopyrightInfo {
 
     private loadCoWebsite(coDiv: HTMLDivElement) : Promise<void> {
         // add pre-loaded text
-        coDiv.innerHTML= "<div class=\"copyright\"><pre>" + CopyrightInfo.escapeTags(this.copyrightTxt ?? '') + "</pre></div>";
+        coDiv.innerHTML= "<iframe srcdoc=\"<div class='copyright'><pre>" + CopyrightInfo.escapeTags(this.copyrightTxt ?? '') + "</pre></div>\"></iframe>";
         return Promise.resolve();
     }
 }
