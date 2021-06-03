@@ -10,7 +10,7 @@ export interface CharacterTexture {
 export const maxUserNameLength: number = MAX_USERNAME_LENGTH;
 
 export function isUserNameValid(value: unknown): boolean {
-    return typeof value === "string" && value.length > 0 && value.length < maxUserNameLength && value.indexOf(' ') === -1;
+    return typeof value === "string" && value.length > 0 && value.length <= maxUserNameLength && value.indexOf(' ') === -1;
 }
 
 export function areCharacterLayersValid(value: string[] | null): boolean {
@@ -24,6 +24,6 @@ export function areCharacterLayersValid(value: string[] | null): boolean {
 }
 
 export class LocalUser {
-    constructor(public readonly uuid:string, public readonly jwtToken: string, public readonly textures: CharacterTexture[]) {
+    constructor(public readonly uuid:string, public readonly jwtToken: string, public textures: CharacterTexture[]) {
     }
 }
