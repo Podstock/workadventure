@@ -5,17 +5,11 @@ import Axios from "axios";
 class AdminApi {
 
     fetchVisitCardUrl(membershipUuid: string): Promise<string> {
-        if (ADMIN_API_URL) {
-            return Axios.get(ADMIN_API_URL + '/api/membership/'+membershipUuid,
-                {headers: {"Authorization": `${ADMIN_API_TOKEN}`}}
-            ).then((res) => {
-                return res.data;
-            }).catch(() => {
-                return 'INVALID';
-            });
-        } else {
-            return Promise.resolve('INVALID')
-        }
+        return Axios.get('https://mein.podstock.de/api/membership/'+membershipUuid).then((res) => {
+            return res.data;
+        }).catch(() => {
+            return 'INVALID';
+        });
     }
 }
 
