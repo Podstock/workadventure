@@ -63,7 +63,7 @@ class ConnectionManager {
                 }
             }else{
                 if (connexionType === GameConnexionTypes.podstock) {
-                    this.podstockLogin();
+                    await this.podstockLogin();
                 } else {
                     await this.anonymousLogin();
                 }
@@ -122,9 +122,9 @@ class ConnectionManager {
         const podstockuuid = urlManager.getPodstockUuid();
         const data = await Axios.post(`${PUSHER_URL}/podstock`, {podstockuuid}).then(res => res.data);
         this.localUser = new LocalUser(data.userUuid, data.authToken, []);
-        await localUserStore.saveUser(this.localUser);
-        await localUserStore.setName(data.username);
-        await gameManager.setPlayerName(data.username);
+        localUserStore.saveUser(this.localUser);
+        localUserStore.setName(data.username);
+        gameManager.setPlayerName(data.username);
     }
 
     public initBenchmark(): void {
