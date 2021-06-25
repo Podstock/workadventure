@@ -59,7 +59,7 @@ class ConnectionManager {
                         await this.podstockLogin();
                     } else {
                         await this.anonymousLogin();
-                    };
+                    }
                 }
             }else{
                 if (connexionType === GameConnexionTypes.podstock) {
