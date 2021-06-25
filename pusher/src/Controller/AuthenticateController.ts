@@ -4,6 +4,7 @@ import {BaseController} from "./BaseController";
 import {adminApi} from "../Services/AdminApi";
 import {jwtTokenManager} from "../Services/JWTTokenManager";
 import {parse} from "query-string";
+import Axios from "axios";
 
 export interface TokenInterface {
     userUuid: string
@@ -141,13 +142,13 @@ export class AuthenticateController extends BaseController {
                 res.onAborted(() => {
                     console.warn('Login request was aborted');
                 })
+                const param = await res.json();
 
                 try {
-                    const param = await res.json();
-                    const podstockuuid = param.podstockuuid;
-                    const data = await Axios.post('https://mein.podstock/api/uuid', {podstockuuid}).then(res => res.data);
-                    const userUuid = data.uuid;
-                    const username = data.username;
+                    const podstockuuid:string = param.podstockuuid;
+                    const res = await Axios.get('https://mein.podstock/api/uuid/'+podstockuuid);
+                    const userUuid = res.data.uuid;
+                    const username = res.data.username;
                     const authToken = jwtTokenManager.createJWTToken(userUuid);
                     res.writeStatus("200 OK");
                     this.addCorsHeaders(res);
