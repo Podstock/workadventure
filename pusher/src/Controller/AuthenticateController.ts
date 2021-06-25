@@ -16,6 +16,7 @@ export class AuthenticateController extends BaseController {
         this.register();
         this.verify();
         this.anonymLogin();
+        this.podstock();
     }
 
     //Try to login with an admin token
@@ -126,6 +127,39 @@ export class AuthenticateController extends BaseController {
                 authToken,
                 userUuid,
             }));
+        });
+    }
+
+    private podstock(){
+        this.App.options("/podstock", (res: HttpResponse, req: HttpRequest) => {
+            this.addCorsHeaders(res);
+            res.end();
+        });
+
+        this.App.post("/podstock", (res: HttpResponse, req: HttpRequest) => {           
+            (async () => {
+                res.onAborted(() => {
+                    console.warn('Login request was aborted');
+                })
+
+                try {
+                    const param = await res.json();
+                    const podstockuuid = param.podstockuuid;
+                    const data = await Axios.post('https://mein.podstock/api/uuid', {podstockuuid}).then(res => res.data);
+                    const userUuid = data.uuid;
+                    const username = data.username;
+                    const authToken = jwtTokenManager.createJWTToken(userUuid);
+                    res.writeStatus("200 OK");
+                    this.addCorsHeaders(res);
+                    res.end(JSON.stringify({
+                        authToken,
+                        userUuid,
+                        username
+                    }));
+                } catch (e) {
+                        this.errorToResponse(e, res);
+                }
+            })();
         });
     }
 }

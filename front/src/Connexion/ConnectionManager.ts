@@ -45,8 +45,7 @@ class ConnectionManager {
             const room = new Room('/@/'+organizationSlug+'/'+worldSlug+'/'+roomSlug + window.location.search + window.location.hash);
             urlManager.pushRoomIdToUrl(room);
             return Promise.resolve(room);
-        } else if (connexionType === GameConnexionTypes.organization || connexionType === GameConnexionTypes.anonymous || connexionType === GameConnexionTypes.empty) {
-
+        } else if (connexionType === GameConnexionTypes.organization || connexionType === GameConnexionTypes.anonymous || connexionType === GameConnexionTypes.empty || connexionType === GameConnexionTypes.podstock) {
             let localUser = localUserStore.getLocalUser();
             if (localUser && localUser.jwtToken && localUser.uuid && localUser.textures) {
                 this.localUser = localUser;
@@ -58,7 +57,16 @@ class ConnectionManager {
                     await this.anonymousLogin();
                 }
             }else{
-                await this.anonymousLogin();
+                if (connexionType === GameConnexionTypes.podstock) {
+                    const podstockuuid = urlManager.getPodstockUuid();
+                    const data = await Axios.post(`${PUSHER_URL}/anonymLogin`, {podstockuuid}).then(res => res.data);
+                    this.localUser = new LocalUser(data.userUuid, data.authToken, []);
+                    localUserStore.saveUser(this.localUser);
+                    localUserStore.setName(data.username);
+                } else {
+                    //@TODO deny
+                    await this.anonymousLogin();
+                }
             }
 
             localUser = localUserStore.getLocalUser();
@@ -67,7 +75,7 @@ class ConnectionManager {
             }
 
             let roomId: string;
-            if (connexionType === GameConnexionTypes.empty) {
+            if (connexionType === GameConnexionTypes.empty || connexionType === GameConnexionTypes.podstock) {
                 roomId = START_ROOM_URL;
             } else {
                 roomId = window.location.pathname + window.location.search + window.location.hash;

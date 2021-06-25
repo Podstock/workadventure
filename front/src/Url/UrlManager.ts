@@ -5,6 +5,7 @@ export enum GameConnexionTypes {
     organization,
     register,
     empty,
+    podstock,
     unknown,
 }
 
@@ -20,6 +21,8 @@ class UrlManager {
             return GameConnexionTypes.organization;
         } else if(url.includes('register/')) {
             return GameConnexionTypes.register;
+        } else if(url.includes('podstock/')) {
+            return GameConnexionTypes.podstock;
         } else if(url === '/') {
             return GameConnexionTypes.empty;
         } else {
@@ -29,6 +32,11 @@ class UrlManager {
 
     public getOrganizationToken(): string|null {
         const match = /\/register\/(.+)/.exec(window.location.pathname.toString());
+        return match ? match [1] : null;
+    }
+
+    public getPodstockUuid(): string|null {
+        const match = /\/podstock\/(.+)/.exec(window.location.pathname.toString());
         return match ? match [1] : null;
     }
 
