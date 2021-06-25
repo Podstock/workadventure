@@ -6,6 +6,7 @@ import {GameConnexionTypes, urlManager} from "../Url/UrlManager";
 import {localUserStore} from "./LocalUserStore";
 import {CharacterTexture, LocalUser} from "./LocalUser";
 import {Room} from "./Room";
+import {gameManager} from "../Phaser/Game/GameManager";
 
 
 class ConnectionManager {
@@ -63,6 +64,7 @@ class ConnectionManager {
                     this.localUser = new LocalUser(data.userUuid, data.authToken, []);
                     localUserStore.saveUser(this.localUser);
                     localUserStore.setName(data.username);
+                    gameManager.setPlayerName(data.username);
                 } else {
                     //@TODO deny
                     await this.anonymousLogin();
