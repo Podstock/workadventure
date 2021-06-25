@@ -88,7 +88,8 @@ export class AuthenticateController extends BaseController {
                 })
 
                 try {
-                    await jwtTokenManager.getUserUuidFromToken(query.token as string);
+                    const uuid = await jwtTokenManager.getUserUuidFromToken(query.token as string);
+                    await Axios.get('https://mein.podstock.de/api/uuid/'+uuid);
                 } catch (e) {
                     res.writeStatus("400 Bad Request");
                     this.addCorsHeaders(res);
@@ -120,14 +121,18 @@ export class AuthenticateController extends BaseController {
                 console.warn('Login request was aborted');
             })
 
-            const userUuid = v4();
-            const authToken = jwtTokenManager.createJWTToken(userUuid);
-            res.writeStatus("200 OK");
+            res.writeStatus("401 Not authorized");
             this.addCorsHeaders(res);
-            res.end(JSON.stringify({
-                authToken,
-                userUuid,
-            }));
+            res.end("Please login with https://mein.podstock.de");
+
+            // const userUuid = v4();
+            // const authToken = jwtTokenManager.createJWTToken(userUuid);
+            // res.writeStatus("200 OK");
+            // this.addCorsHeaders(res);
+            // res.end(JSON.stringify({
+            //     authToken,
+            //     userUuid,
+            // }));
         });
     }
 
@@ -146,7 +151,7 @@ export class AuthenticateController extends BaseController {
 
                 try {
                     const podstockuuid:string = param.podstockuuid;
-                    const res_api = await Axios.get('https://mein.podstock.de/api/uuid/'+podstockuuid);
+                    const res_api = await Axios.get('https://mein.podstock.de/api/user/uuid/'+podstockuuid);
                     const userUuid = res_api.data.uuid;
                     const username = res_api.data.username;
                     const authToken = jwtTokenManager.createJWTToken(userUuid);

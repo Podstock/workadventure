@@ -66,7 +66,6 @@ class ConnectionManager {
                     localUserStore.setName(data.username);
                     gameManager.setPlayerName(data.username);
                 } else {
-                    //@TODO deny
                     await this.anonymousLogin();
                 }
             }
