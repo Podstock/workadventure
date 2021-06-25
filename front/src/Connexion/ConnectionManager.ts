@@ -55,16 +55,15 @@ class ConnectionManager {
                 } catch(e) {
                     // If the token is invalid, let's generate an anonymous one.
                     console.error('JWT token invalid. Did it expire? Login anonymously instead.');
-                    await this.anonymousLogin();
+                    if (connexionType === GameConnexionTypes.podstock) {
+                        await this.podstockLogin();
+                    } else {
+                        await this.anonymousLogin();
+                    };
                 }
             }else{
                 if (connexionType === GameConnexionTypes.podstock) {
-                    const podstockuuid = urlManager.getPodstockUuid();
-                    const data = await Axios.post(`${PUSHER_URL}/podstock`, {podstockuuid}).then(res => res.data);
-                    this.localUser = new LocalUser(data.userUuid, data.authToken, []);
-                    localUserStore.saveUser(this.localUser);
-                    localUserStore.setName(data.username);
-                    gameManager.setPlayerName(data.username);
+                    this.podstockLogin();
                 } else {
                     await this.anonymousLogin();
                 }
@@ -117,6 +116,15 @@ class ConnectionManager {
         if (!isBenchmark) { // In benchmark, we don't have a local storage.
             localUserStore.saveUser(this.localUser);
         }
+    }
+
+    public async podstockLogin(): Promise<void> {
+        const podstockuuid = urlManager.getPodstockUuid();
+        const data = await Axios.post(`${PUSHER_URL}/podstock`, {podstockuuid}).then(res => res.data);
+        this.localUser = new LocalUser(data.userUuid, data.authToken, []);
+        localUserStore.saveUser(this.localUser);
+        localUserStore.setName(data.username);
+        gameManager.setPlayerName(data.username);
     }
 
     public initBenchmark(): void {
