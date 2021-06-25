@@ -59,7 +59,7 @@ class ConnectionManager {
             }else{
                 if (connexionType === GameConnexionTypes.podstock) {
                     const podstockuuid = urlManager.getPodstockUuid();
-                    const data = await Axios.post(`${PUSHER_URL}/anonymLogin`, {podstockuuid}).then(res => res.data);
+                    const data = await Axios.post(`${PUSHER_URL}/podstock`, {podstockuuid}).then(res => res.data);
                     this.localUser = new LocalUser(data.userUuid, data.authToken, []);
                     localUserStore.saveUser(this.localUser);
                     localUserStore.setName(data.username);
