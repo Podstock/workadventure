@@ -146,9 +146,9 @@ export class AuthenticateController extends BaseController {
 
                 try {
                     const podstockuuid:string = param.podstockuuid;
-                    const res = await Axios.get('https://mein.podstock/api/uuid/'+podstockuuid);
-                    const userUuid = res.data.uuid;
-                    const username = res.data.username;
+                    const res_api = await Axios.get('https://mein.podstock.de/api/uuid/'+podstockuuid);
+                    const userUuid = res_api.data.uuid;
+                    const username = res_api.data.username;
                     const authToken = jwtTokenManager.createJWTToken(userUuid);
                     res.writeStatus("200 OK");
                     this.addCorsHeaders(res);
