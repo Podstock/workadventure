@@ -89,7 +89,7 @@ export class AuthenticateController extends BaseController {
 
                 try {
                     const uuid = await jwtTokenManager.getUserUuidFromToken(query.token as string);
-                    await Axios.get('https://mein.podstock.de/api/uuid/'+uuid);
+                    await Axios.get('https://mein.podstock.de/api/user/uuid/'+uuid);
                 } catch (e) {
                     res.writeStatus("400 Bad Request");
                     this.addCorsHeaders(res);
