@@ -1,6 +1,7 @@
 import {HtmlUtils} from "./HtmlUtils";
 import {Subject} from "rxjs";
 import {iframeListener} from "../Api/IframeListener";
+import { mediaManager } from "./MediaManager";
 
 enum iframeStates {
     closed = 1,
@@ -109,6 +110,7 @@ class CoWebsiteManager {
         this.cowebsiteDiv.classList.add('hidden');
         this.opened = iframeStates.closed;
         this.resetStyle();
+        mediaManager.showGameOverlay();
     }
     private load(): void {
         this.cowebsiteDiv.classList.remove('hidden'); //edit the css class to trigger the transition
@@ -119,6 +121,7 @@ class CoWebsiteManager {
         this.cowebsiteDiv.classList.remove('loading', 'hidden'); //edit the css class to trigger the transition
         this.opened = iframeStates.opened;
         this.resetStyle();
+        mediaManager.hideGameOverlay();
     }
 
     public resetStyle() {
