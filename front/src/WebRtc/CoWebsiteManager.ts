@@ -106,11 +106,11 @@ class CoWebsiteManager {
     }
 
     private close(): void {
+        mediaManager.showGameOverlay();
         this.cowebsiteDiv.classList.remove('loaded'); //edit the css class to trigger the transition
         this.cowebsiteDiv.classList.add('hidden');
         this.opened = iframeStates.closed;
         this.resetStyle();
-        mediaManager.showGameOverlay();
     }
     private load(): void {
         this.cowebsiteDiv.classList.remove('hidden'); //edit the css class to trigger the transition
@@ -118,10 +118,10 @@ class CoWebsiteManager {
         this.opened = iframeStates.loading;
     }
     private open(): void {
+        mediaManager.hideGameOverlay();
         this.cowebsiteDiv.classList.remove('loading', 'hidden'); //edit the css class to trigger the transition
         this.opened = iframeStates.opened;
         this.resetStyle();
-        mediaManager.hideGameOverlay();
     }
 
     public resetStyle() {
